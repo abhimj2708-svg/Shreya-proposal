@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Will you be my Valentine? — Shreya</title>
+  <style>
+    :root{
+      --accent:#ff5470;
+      --accent-dark:#c83a55;
+      --glass: rgba(255,255,255,0.08);
+      --text: #fff;
+      --muted: rgba(255,255,255,0.85);
+      --shadow: 0 6px 24px rgba(0,0,0,0.45);
+      --radius: 14px;
+    }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:var(--text);} 
+    body{
+      background: radial-gradient(ellipse at 10% 10%, rgba(255,95,108,0.18), transparent 10%),
+                  linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.35));
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    /* full-screen scenic background from Unsplash (random matching query) */
+    .bg {
+      position:fixed; inset:0; z-index:-2;
+      background-image: url("https://source.unsplash.com/1600x900/?rose,garden,romantic,landscape");
+      background-size:cover; background-position:center;
+      filter: saturate(1.05) contrast(1.05) brightness(0.75);
+      transform: scale(1.02);
+    }
+    .overlay {
+      position:fixed; inset:0; z-index:-1; background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.45));
+    }
+
+    .card{
+      width: min(920px, 92vw);
+      padding: clamp(18px, 2.6vw, 36px);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      backdrop-filter: blur(6px) saturate(1.05);
+      box-shadow: var(--shadow);
+      display:flex;
+      gap:24px;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .left {
+      color:var(--text);
+      max-width:58%;
+    }
+    h1{
+      margin:0 0 10px 0;
+      font-size: clamp(28px, 4.4vw, 48px);
+      line-height:1.02;
+      letter-spacing: -0.5px;
+      text-shadow: 0 6px 32px rgba(0,0,0,0.5);
+    }
+    p.lead{
+      margin:0 0 18px 0; color:var(--muted); font-size: clamp(14px, 1.6vw, 18px);
+    }
+    .buttons{
+      display:flex; gap:14px; align-items:center;
+    }
+
+    button.btn{
+      border:0; cursor:pointer; padding:12px 20px; font-weight:700; border-radius:12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      transition: transform .18s ease, box-shadow .18s ease;
+      user-select:none;
+    }
+    button.btn:active{ transform: translateY(1px) scale(.995); }
+    .btn-yes{
+      background: linear-gradient(135deg,var(--accent),var(--accent-dark));
+      color:white; font-size:18px; padding:14px 24px;
+      display:inline-flex; gap:10px; align-items:center;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      box-shadow: 0 10px 30px rgba(255,84,112,0.18);
+    }
+    .btn-no{
+      background: rgba(255,255,255,0.06);
+      color:var(--text); border:1px solid rgba(255,255,255,0.06);
+      font-size:16px; padding:12px 18px;
+      position:relative;
+    }
+
+    /* container for the no button so we can absolutely position it */
+    .button-area{
+      position:relative;
+      width:320px; height:66px;
+      display:flex; align-items:center; justify-content:center;
+    }
+
+    .right {
+      width: 42%;
+      min-width:180px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .heart {
+      width: 140px; height:140px; border-radius:50%;
+      background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.08), transparent 20%),
+                  linear-gradient(180deg,#ff8aa0,#ff3f68);
+      box-shadow: 0 12px 40px rgba(255,63,104,0.22), inset 0 -10px 30px rgba(0,0,0,0.12);
+      display:flex; align-items:center; justify-content:center;
+      transform: rotate(-10deg);
+    }
+    .heart::after{
+      content:"❤";
+      font-size:64px; color:rgba(255,255,255,0.95); transform: translateY(-6px);
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,0.25));
+    }
+
+    /* modal */
+    .modal {
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.45); z-index:999; opacity:0; pointer-events:none;
+      transition: opacity .22s ease;
+    }
+    .modal.show{ opacity:1; pointer-events:auto; }
+    .modal-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      padding:28px; border-radius:16px; width:min(520px,92vw); text-align:center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      color:var(--text);
+    }
+    .modal-card h2{ margin:0 0 10px 0; font-size: clamp(22px, 3.8vw, 32px); }
+    .modal-card p{ margin:0 0 18px 0; color:var(--muted); font-size:16px; }
+    .close {
+      background:transparent; color:var(--accent); border:2px solid rgba(255,255,255,0.06);
+      padding:8px 14px; border-radius:10px; font-weight:700; cursor:pointer;
+    }
+
+    footer.hint { position:fixed; left:12px; bottom:12px; color:rgba(255,255,255,0.7); font-size:13px }
+    @media (max-width:720px){
+      .card{ flex-direction:column; align-items:stretch; gap:16px; padding:18px;}
+      .left{ max-width:100%; }
+      .right{ width:100%; min-height:120px; }
+      .button-area{ width:100%; height:86px; }
+    }
+
+    /* small confetti canvas covers whole screen */
+    canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:998; }
+
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="overlay" aria-hidden="true"></div>
+
+  <main class="card" role="main" aria-labelledby="val-title">
+    <div class="left">
+      <h1 id="val-title">Will you be my Valentine? <span style="color:#ffd6e0">Shreya!</span></h1>
+      <p class="lead">I promise cozy evenings, silly jokes, and lots of roses 🌹. Choose wisely…</p>
+      <div class="buttons" aria-hidden="false">
+        <button class="btn btn-yes" id="yesBtn" aria-label="Say Yes">
+          Yes
+          <svg width="18" height="18" viewBox="0 0 24 24" style="filter:drop-shadow(0 4px 10px rgba(0,0,0,0.18));">
+            <path fill="#fff" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 3.99 4 6.5 4c1.74 0 3.41.81 4.5 2.09C11.09 4.81 12.76 4 14.5 4 17.01 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+          </svg>
+        </button>
+
+        <div class="button-area" aria-hidden="false">
+          <button class="btn btn-no" id="noBtn" aria-label="Say No">No</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right" aria-hidden="true">
+      <div class="heart" aria-hidden="true"></div>
+    </div>
+  </main>
+
+  <canvas id="confetti"></canvas>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h2 id="modalTitle">Yayy! No backsies 🎉</h2>
+      <p>I'm so happy — thank you! Sending you virtual roses 🌹 and hugs.</p>
+      <button class="close" id="closeModal">Close</button>
+    </div>
+  </div>
+
+  <footer class="hint">Tip: Try to click "No" if you dare…</footer>
+
+  <script>
+    // Elements
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const buttonArea = noBtn.parentElement;
+    const modal = document.getElementById('modal');
+    const closeModal = document.getElementById('closeModal');
+
+    // Keep track of attempts to make the No button more evasive after a few tries
+    let attempts = 0;
+
+    // Ensure no button starts centered
+    positionNoButton(0.5,0.5);
+
+    // Random position helpers (relative to the buttonArea)
+    function positionNoButton(relX, relY){
+      const area = buttonArea.getBoundingClientRect();
+      const btn = noBtn.getBoundingClientRect();
+      // compute top-left coords
+      const maxX = Math.max(0, area.width - btn.width);
+      const maxY = Math.max(0, area.height - btn.height);
+      const left = Math.round(relX * maxX);
+      const top = Math.round(relY * maxY);
+      noBtn.style.position = 'absolute';
+      noBtn.style.left = left + 'px';
+      noBtn.style.top = top + 'px';
+    }
+
+    // Move to a random safe position inside the container
+    function jumpNoButton() {
+      attempts++;
+      const area = buttonArea.getBoundingClientRect();
+      const btn = noBtn.getBoundingClientRect();
+
+      // enlarge escape range as attempts increase
+      const padding = Math.min(24 + attempts * 12, Math.max(area.width, area.height)/4);
+
+      // choose random relative position
+      const relX = Math.random();
+      const relY = Math.random();
+
+      // occasionally move partially off the visible area on small screens (playful)
+      positionNoButton(relX, relY);
+
+      // subtle wiggle animation
+      noBtn.animate([
+        { transform: 'translateY(0) rotate(0deg)' },
+        { transform: 'translateY(-8px) rotate(-6deg)' },
+        { transform: 'translateY(0) rotate(0deg)' }
+      ], { duration: 420, easing:'ease-out' });
+    }
+
+    // On hover or focus, escape
+    noBtn.addEventListener('mouseenter', (e)=> {
+      jumpNoButton();
+    });
+    noBtn.addEventListener('focus', (e)=> {
+      jumpNoButton();
+      // move focus away
+      yesBtn.focus();
+    });
+
+    // If user tries to click, still escape
+    noBtn.addEventListener('click', (e)=> {
+      e.preventDefault();
+      jumpNoButton();
+    });
+
+    // Make it harder after many attempts: teleport outside and disable pointer briefly
+    function chaoticEscape() {
+      noBtn.style.transition = 'transform .24s ease';
+      noBtn.style.transform = 'scale(1.04) rotate(-8deg)';
+      setTimeout(()=> {
+        noBtn.style.transform = '';
+      }, 300);
+    }
+
+    // If user moves mouse quickly toward No, try to dodge (track mouse)
+    let lastMouse = {x:0,y:0};
+    document.addEventListener('mousemove', (e)=>{
+      const area = buttonArea.getBoundingClientRect();
+      const btn = noBtn.getBoundingClientRect();
+      // only consider when cursor is inside the button area
+      if(e.clientX >= area.left && e.clientX <= area.right && e.clientY >= area.top && e.clientY <= area.bottom) {
+        // if cursor near the button center, escape
+        const cx = btn.left + btn.width/2;
+        const cy = btn.top + btn.height/2;
+        const dx = e.clientX - cx, dy = e.clientY - cy;
+        const dist = Math.hypot(dx,dy);
+        if(dist < Math.max(120, btn.width*1.6)) {
+          if(Math.random() < 0.55) { jumpNoButton(); chaoticEscape(); }
+        }
+      }
+      lastMouse = {x:e.clientX,y:e.clientY};
+    });
+
+    // YES button click: celebrate
+    yesBtn.addEventListener('click', async (e) => {
+      // Prevent double clicks
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      // Play chime
+      playChime();
+      // Launch confetti
+      setTimeout(()=> {
+        modal.classList.add('show');
+        modal.querySelector('.close').focus();
+      }, 300);
+    });
+
+    closeModal.addEventListener('click', ()=>{
+      modal.classList.remove('show');
+      // re-enable buttons but keep yes disabled to avoid repeated confetti
+      noBtn.disabled = true;
+      yesBtn.disabled = true;
+    });
+
+    // Close on ESC
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape' && modal.classList.contains('show')) {
+        modal.classList.remove('show');
+      }
+    });
+
+    /* --- Simple confetti implementation --- */
+    const confettiCanvas = document.getElementById('confetti');
+    const ctx = confettiCanvas.getContext('2d');
+    let confettiPieces = [];
+    let confettiActive = false;
+    function resizeCanvas(){
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function random(min,max){ return Math.random() * (max-min) + min; }
+
+    function createConfetti(count=120){
+      confettiPieces = [];
+      const colors = [['#ff9aa2','#ff7b95'], ['#ffd6e0','#ff9ad6'], ['#ffefc2','#ffd1a9'], ['#c1ffd7','#89f1d8'], ['#fff3f8','#ffd6e0']];
+      for(let i=0;i<count;i++){
+        const size = random(6,12);
+        confettiPieces.push({
+          x: random(0, confettiCanvas.width),
+          y: random(-confettiCanvas.height*0.2, confettiCanvas.height),
+          w: size,
+          h: size*0.6,
+          angle: random(0, Math.PI*2),
+          speedX: random(-1.6, 2.6),
+          speedY: random(1, 4),
+          rotateSpeed: random(-0.12, 0.12),
+          color: colors[Math.floor(random(0,colors.length))],
+          ttl: random(2200, 4200),
+          birth: performance.now()
+        });
+      }
+    }
+
+    function drawConfetti(now){
+      ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+      let alive = false;
+      for(const p of confettiPieces){
+        const age = now - p.birth;
+        if(age > p.ttl) continue;
+        alive = true;
+        p.x += p.speedX;
+        p.y += p.speedY + Math.sin((age + p.x) * 0.01) * 0.6;
+        p.angle += p.rotateSpeed;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        // two-tone rectangle
+        const grad = ctx.createLinearGradient(-p.w/2, -p.h/2, p.w/2, p.h/2);
+        grad.addColorStop(0, p.color[0]);
+        grad.addColorStop(1, p.color[1]);
+        ctx.fillStyle = grad;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.restore();
+      }
+      if(alive) requestAnimationFrame(drawConfetti);
+      else { confettiActive = false; ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
+    }
+
+    function launchConfetti(){
+      if(confettiActive) return;
+      confettiActive = true;
+      createConfetti(160);
+      requestAnimationFrame(drawConfetti);
+    }
+
+    /* --- Simple chime using Web Audio API --- */
+    function playChime(){
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const o1 = ctx.createOscillator();
+        const o2 = ctx.createOscillator();
+        const g = ctx.createGain();
+        o1.type = 'sine'; o2.type = 'triangle';
+        o1.frequency.setValueAtTime(880, now);
+        o2.frequency.setValueAtTime(1320, now);
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.12, now + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+        o1.connect(g); o2.connect(g); g.connect(ctx.destination);
+        o1.start(now); o2.start(now + 0.02);
+        o1.stop(now + 2.1); o2.stop(now + 2.1);
+      }catch(err){
+        // ignore if audio unavailable
+        console.warn('Audio not available', err);
+      }
+    }
+
+    // Accessibility: allow keyboard to try to press No (it will escape)
+    noBtn.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        jumpNoButton();
+      }
+    });
+
+    // For fun, after many attempts, show cheeky message in footer
+    setInterval(()=>{
+      if(attempts >= 7){
+        document.querySelector('.hint').textContent = "Oh come on, pick Yes already ❤️";
+      } else if (attempts >= 3){
+        document.querySelector('.hint').textContent = "That " + ['No','Nope','Not yet','Try again'][attempts % 4] + " button is shy…";
+      }
+    }, 900);
+
+    // Prevent context menu on the No button to stop "inspect & click" tricks
+    noBtn.addEventListener('contextmenu', (e)=> e.preventDefault());
+  </script>
+</body>
+</html>
